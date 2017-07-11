@@ -1,0 +1,67 @@
+My TTA is combined by 12 predictions: crop_{}, crop_{}_rotate_90, crop_{}_rotate_180, crop_{}flip, crop{}_rotate_90_flip, crop_{}_rotate_180_flip, where {} is replaced by 224 or 256. 
+The input image size is always 256. I was not analysing if there is any gain from flipping or rotating the image, but as I was using both while training, I apply them on TTA.
+While training models, I was using 224 input. I was testing 256 input but it does not work better (maybe because then I not used random-crop)
+
+About the different scale, it is well known method. For example most models trained on ImageNet use 224 while training. But in test-time 320 is used. It improve results really nicely.
+
+First of all, I'm not doing any upscaling. I use input images of size 224 (center crop) and 256 (original images).
+
+I'm training with input 224 but 256 also works because of AdaptivePooling from PyTorch.
+
+About TTA, your are right, it is about reducing variance of predictions. But my intuition about using 224 and 256 images in test-time is that I'm using random scale while training. So model see images at different scales, so we could use this trick also in test-time.
+
+I'm not sure if I fully understand your question, so maybe answer is also wrong.
+
+About train-val split, I was not trying others ratio. But larger difference mean ex 95% -5%. 5% is 2000 images, which maybe to low to get reliable validation using just single model (but at 20-fold validation it could be ok). But as look like training on entire set look nice, I'm sure if this is worth trying.
+
+ImageNet images have different sized, I think that they are even bigger than 320. This value was used on ResNet paper, not sure why exactly.
+
+About bigger difference between train-test, I didn't test any other values. 256 is maximum size of original images and I don't think up-scaling it to ex 320 is a good idea. On the other hand, using images smaller than 224 may lost too many information, as you said. I have just used standard idea of TTA. Also take into account that having more and more TTA will have a lower effect of reducing variance of predictions as it will be already small. I was thinking about adding 10-crop-224 method (used in ImageNet), but as I already have 12 TTA, I' not sure if this is a right thing. The best way could be checking the importance of predictions from each TTA. But if you will try such experiment, let us know!
+
+
+
+my results on single model for your reference:
+
+LB scores:
+
+Inception3 (288x288) - 0.93088
+
+densenet121(256x256) - 0.9299
+
+renset34(256x256) - 0.93056
+
+densenet169(224x224) - 0.92966
+
+renset50(256x256) - 0.92998
+
+renset50(288x288) - 0.92991
+
+The usual training methods work. For those who has difficult in repeating results, here are some tips:
+
+try sgd with step learning rates, e.g. 0.01, 0.001, 0.0001
+use pretrain models
+use all train samples for submission. use train/validation to determine stopping criteria and when to change learning rates
+use train augmentations. you can try more extreme augmentation (e.g. larger scale, rotation ) if you network is deep
+Use test time agumentation (try to use difference scale)
+try different input size: 256,288,224
+try difference batch size
+there is much label noise in the training set (and i think in the LB testing set). Getting low loss on the train set may not gives you low loss on the test set.
+I find resnet34 easiest to work with and fastest to train. the tricks apply to all networks.
+
+
+I concur on the tifs - they haven't provided any additional benefit, even though I spent quite a bit of effort on this. These are some experiments i tried using a VGG16 structure:
+
+GRN (GR = JPG; N = TIF) w/ pretrained VGG16 (tried N was with mean/std normalized and both converted to JPG like with a mean of around ~100)
+BGRN (4 channel TIF) w/ a pretrained VGG16, where I transferred all the layers except conv1 from existing weights, which I transferred only BGR and N channel I just duplicated R weights.
+BGRN (3 channel JPG + 1 channel N from TIF) w/ a pretrained VGG16, where the network modification is the same as #2
+Filtered version of #2, where I only took around 70-80% best TIF images that aligned with JPG
+#2 from scratch
+In order of CV they were something like this: JPG only (3ch) > #3 > #1 > #2 > #4 > #5.
+
+
+i suggest the following:
+
+train(+augment type 1)/validation : determine learning parameters for cnn training (esp stopping epoch and learning rate)
+all train (+augment type 1) : train cnn for submission
+all train (+augment type 2) : threshold leaning for f2
+test (+augment type 2): final submission
