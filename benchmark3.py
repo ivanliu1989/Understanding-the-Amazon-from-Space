@@ -24,6 +24,7 @@ from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, AveragePooli
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import backend as K
+from keras import optimizers
 
 import keras as k
 from keras.models import Sequential
