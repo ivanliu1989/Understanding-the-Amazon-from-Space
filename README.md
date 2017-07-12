@@ -1,5 +1,4 @@
-Tips:
-
+### Tips:
 - TTA (test time augmentation): combine 12 predictions including crop_{}, crop_{}_rotate_90, crop_{}_rotate_180, crop_{}flip, crop{}_rotate_90_flip, crop_{}_rotate_180_flip, where {} is replaced by 224 or 256. OR 10-crop-224 method (used in ImageNet)
 - Input image size: 256,288,224
 - Trainging models with 224 (center crop) input rather than 256 (maybe because AdaptivePooling)
@@ -19,19 +18,8 @@ Tips:
 - Batch size
 - Use mean and std from Image net. I'm using it and it works nice.
 
-LB scores:
-
-- Inception3 (288x288) - 0.93088
-- densenet121(256x256) - 0.9299
-- renset34(256x256) - 0.93056
-- densenet169(224x224) - 0.92966
-- renset50(256x256) - 0.92998
-- renset50(288x288) - 0.92991
-
-Pretrained Models:
-
+### Pretrained Models:
 - CNN Finetune: https://github.com/flyyufelix/cnn_finetune
-
 - DenseNet: https://github.com/flyyufelix/DenseNet-Keras
 - ResNet-101: https://gist.github.com/flyyufelix/65018873f8cb2bbe95f429c474aa1294
 - ResNet-152: https://gist.github.com/flyyufelix/7e2eafb149f72f4d38dd661882c554a6
